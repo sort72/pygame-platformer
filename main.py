@@ -5,6 +5,8 @@ from random import randint
 WIDTH = 1000
 HEIGHT= 625
 
+MAX_X = 300
+
 SCREEN = 1
 
 LIMIT_JUMPED = 150.0
@@ -26,6 +28,7 @@ class Player(pygame.sprite.Sprite):
         self.time_descending = 0.0
         self.in_platform = False
         self.score = 0
+        self.posX = 0
 
     def update(self):
         global SCREEN
@@ -43,11 +46,13 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x += int(self.vel)
                 if self.rect.right > WIDTH:
                     self.rect.right = WIDTH
+                    self.posX += int(self.vel)
 
             if keys[K_LEFT]:
                 self.rect.x -= int(self.vel)
                 if self.rect.left < 0:
                     self.rect.left = 0
+                    self.posX -= int(self.vel)
 
             if self.is_jumping == True:
                 distance_jump = self.vel * 1.1
@@ -213,6 +218,14 @@ def Game():
                 playerC.score += 1
                 if playerC.score == 2:
                     SCREEN = 4
+
+            key = pygame.key.get_pressed()
+            if player.rect.right == WIDTH and player.posX <= MAX_X and key[K_RIGHT]:
+                for element in all_sprites:
+                    element.rect.x -= int(player.vel)
+            elif player.rect.left == 0 and player.posX >= 0 and key[K_LEFT]:
+                for element in all_sprites:
+                    element.rect.x += int(player.vel)
 
         # Game Over
         elif SCREEN == 3:
