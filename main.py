@@ -5,7 +5,7 @@ from random import randint
 WIDTH = 1000
 HEIGHT= 625
 
-MAX_X = 300
+MAX_X = 1001
 
 SCREEN = 1
 
@@ -19,9 +19,9 @@ screen = pygame.display.set_mode((WIDTH,HEIGHT))
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("assets/sprites/player.png")
+        self.image = pygame.image.load("assets/sprites/Running/0_Fallen_Angels_Running_000.png")
         self.rect = self.image.get_rect()
-        self.vel = 2
+        self.vel = 3
         self.is_jumping = False
         self.is_descending = False
         self.distance_jumped = 0.0
@@ -29,6 +29,34 @@ class Player(pygame.sprite.Sprite):
         self.in_platform = False
         self.score = 0
         self.posX = 0
+        self.current_sprite = 0
+        self.old_status = 0
+        self.walking_left = False
+        self.sprites_limit = [110, 110, 90, 50]
+
+    def calculate_sprite(self, status):
+        if self.old_status != status:
+            self.old_status = status
+            self.current_sprite = 0
+
+        if self.current_sprite % 10 == 0:
+            if status == 1:
+                self.image = pygame.image.load("assets/sprites/Running/0_Fallen_Angels_Running_00" + str(int(self.current_sprite / 10)) + ".png")
+            elif status == 2:
+                self.image = pygame.image.load("assets/sprites/Running/0_Fallen_Angels_Running_00" + str(int(self.current_sprite / 10)) + ".png")
+                self.image = pygame.transform.flip(self.image, self.walking_left, False)
+            elif status == 3:
+                self.image = pygame.image.load("assets/sprites/Jumping/0_Fallen_Angels_Jump_00" + str(int(self.current_sprite / 10)) + ".png")
+                self.image = pygame.transform.flip(self.image, self.walking_left, False)
+            elif status == 4:
+                self.image = pygame.image.load("assets/sprites/FallingDown/0_Fallen_Angels_Falling Down_00" + str(int(self.current_sprite / 10)) + ".png")
+                self.image = pygame.transform.flip(self.image, self.walking_left, False)
+            
+
+        self.current_sprite += 1
+        if self.current_sprite == self.sprites_limit[status - 1]:
+            self.current_sprite = 0
+
 
     def update(self):
         global SCREEN
@@ -46,13 +74,19 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x += int(self.vel)
                 if self.rect.right > WIDTH:
                     self.rect.right = WIDTH
-                    self.posX += int(self.vel)
+                    self.posX += 500
+
+                self.walking_left = False
+                self.calculate_sprite(1)
 
             if keys[K_LEFT]:
                 self.rect.x -= int(self.vel)
                 if self.rect.left < 0:
                     self.rect.left = 0
-                    self.posX -= int(self.vel)
+                    self.posX -= 500
+
+                self.walking_left = True
+                self.calculate_sprite(2)
 
             if self.is_jumping == True:
                 distance_jump = self.vel * 1.1
@@ -66,6 +100,8 @@ class Player(pygame.sprite.Sprite):
                     if self.rect.top < 0:
                         self.rect.top = 0
 
+                self.calculate_sprite(3)
+
             if self.is_descending == True:
                 self.rect.y += int(self.vel + self.time_descending)
                 self.time_descending += 0.05
@@ -75,6 +111,8 @@ class Player(pygame.sprite.Sprite):
                     self.time_descending = 0.0
                     self.is_descending = False
                     self.in_platform = False
+
+                self.calculate_sprite(4)
 
             # Avoid air walking
             if self.in_platform == True and self.is_jumping == False:
@@ -138,9 +176,11 @@ def Game():
                 (320, 350),
                 (560, 220),
                 (1030, 300),
-                (1100, 500)
+                (1100, 500),
+                (1300, 600),
+                (1400, 500)
             ]
-            for i in range(0, 6):
+            for i in range(0, 8):
                 platform = Entity('Platform', platforms_coords[i][0], platforms_coords[i][1])
                 platforms.add(platform)
                 all_sprites.add(platform)
@@ -150,7 +190,7 @@ def Game():
                 (740, 555),
                 (900, 555),
             ]
-            for i in range(0, 3):
+            for i in range(0, 0):
                 spike = Entity('Spikes', spikes_coords[i][0], spikes_coords[i][1])
                 spikes.add(spike)
                 all_sprites.add(spike)
@@ -220,12 +260,13 @@ def Game():
                     SCREEN = 4
 
             key = pygame.key.get_pressed()
-            if player.rect.right == WIDTH and player.posX <= MAX_X and key[K_RIGHT]:
+            if player.rect.right == WIDTH and player.posX < MAX_X and key[K_RIGHT]:
                 for element in all_sprites:
-                    element.rect.x -= int(player.vel)
-            elif player.rect.left == 0 and player.posX >= 0 and key[K_LEFT]:
+                    element.rect.x -= 500
+            elif player.rect.left == 0 and player.posX > 0 and key[K_LEFT]:
                 for element in all_sprites:
-                    element.rect.x += int(player.vel)
+                    element.rect.x += 500
+                
 
         # Game Over
         elif SCREEN == 3:
@@ -261,6 +302,7 @@ def Game():
         all_sprites.update()
         screen.blit(bg, (0,0))
         all_sprites.draw(screen)
+
 
         intro_text = font3.render(f'Hongos: {player.score}', False, (255, 255, 255))
         screen.blit(intro_text,(850,10))
