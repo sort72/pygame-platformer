@@ -9,11 +9,13 @@ MAX_X = 1280
 
 SCREEN = 1
 
+MAX_SCORE = 4
 LIMIT_JUMPED = 150.0
 
 bg_coords = [0, 0]
 
 player_sprite_multiplier = 5
+entity_sprite_multiplier = 6
 
 pygame.init()
 pygame.font.init()
@@ -23,7 +25,7 @@ screen = pygame.display.set_mode((WIDTH,HEIGHT))
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("assets/sprites/Running/0.png")
+        self.image = pygame.image.load("assets/sprites/Player/Running/0.png")
         self.rect = pygame.Rect(self.image.get_rect().left + 20  , self.image.get_rect().top, self.image.get_rect().width - 40 , self.image.get_rect().height)
         self.vel = 3
         self.is_jumping = False
@@ -44,18 +46,18 @@ class Player(pygame.sprite.Sprite):
 
         if self.current_sprite % player_sprite_multiplier == 0:
             if status == 0:
-                self.image = pygame.image.load("assets/sprites/Idle/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                self.image = pygame.image.load("assets/sprites/Player/Idle/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
                 self.image = pygame.transform.flip(self.image, self.walking_left, False)
             elif status == 1:
-                self.image = pygame.image.load("assets/sprites/Running/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                self.image = pygame.image.load("assets/sprites/Player/Running/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
             elif status == 2:
-                self.image = pygame.image.load("assets/sprites/Running/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                self.image = pygame.image.load("assets/sprites/Player/Running/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
                 self.image = pygame.transform.flip(self.image, self.walking_left, False)
             elif status == 3:
-                self.image = pygame.image.load("assets/sprites/Jumping/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                self.image = pygame.image.load("assets/sprites/Player/Jumping/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
                 self.image = pygame.transform.flip(self.image, self.walking_left, False)
             elif status == 4:
-                self.image = pygame.image.load("assets/sprites/FallingDown/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                self.image = pygame.image.load("assets/sprites/Player/FallingDown/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
                 self.image = pygame.transform.flip(self.image, self.walking_left, False)
             
 
@@ -128,6 +130,8 @@ class Player(pygame.sprite.Sprite):
 # Entities different to Player
 class Entity(pygame.sprite.Sprite):
     def __init__(self, type, posX, posY):
+        
+        self.sprites_limit = 0
 
         if type == 'Spikes':
             img = "assets/sprites/spikes.png"
@@ -135,6 +139,11 @@ class Entity(pygame.sprite.Sprite):
             img = "assets/sprites/platform-1.png"
         elif type == 'PowerUp':
             img = "assets/sprites/Coins/0.png"
+            self.sprites_limit = 9
+        elif type == 'Wraith':
+            img = "assets/sprites/Wraith/Taunt/0.png"
+            self.sprites_limit = 17
+            self.is_descending = False
 
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(img)
@@ -148,12 +157,15 @@ class Entity(pygame.sprite.Sprite):
 
     def calculate_sprite(self):
 
-        if self.current_sprite % 5 == 0:
+        if self.current_sprite % entity_sprite_multiplier == 0:
             if self.type == 'PowerUp':
-                self.image = pygame.image.load("assets/sprites/Coins/" + str(int(self.current_sprite / 5)) + ".png")            
+                self.image = pygame.image.load("assets/sprites/Coins/" + str(int(self.current_sprite / entity_sprite_multiplier)) + ".png")  
+            elif self.type == 'Wraith':    
+                self.image = pygame.image.load("assets/sprites/Wraith/Taunt/" + str(int(self.current_sprite / entity_sprite_multiplier)) + ".png")  
+                self.image = pygame.transform.flip(self.image, True, False)    
 
         self.current_sprite += 1
-        if self.current_sprite == 45:
+        if self.current_sprite == self.sprites_limit * entity_sprite_multiplier:
             self.current_sprite = 0
 
 all_sprites = pygame.sprite.Group()
@@ -163,7 +175,7 @@ players = pygame.sprite.Group()
 powerups = pygame.sprite.Group()
 
 def Game():
-    global platforms, players, powerups, spikes, all_sprites, SCREEN
+    global platforms, players, powerups, spikes, all_sprites, SCREEN, bg_coords
 
     pygame.display.set_caption("Platformer v0.1")
     pygame.mixer.music.load("assets/sounds/frigost-cuna-de-alma.mp3")
@@ -186,16 +198,17 @@ def Game():
             platforms = pygame.sprite.Group()
             spikes = pygame.sprite.Group()
             all_sprites = pygame.sprite.Group()
+            bg_coords = [0, 0]
 
             platforms_coords = [
                 (350, 600),
                 (600, 500),
                 (370, 370),
                 (600, 250),
-                (900, 220),
-                (1100, 500),
-                (1300, 600),
-                (1400, 500)
+                (1020, 200),
+                (1250, 600),
+                (1400, 500),
+                (1650, 400)
             ]
             for i in range(0, 8):
                 platform = Entity('Platform', platforms_coords[i][0], platforms_coords[i][1])
@@ -203,26 +216,34 @@ def Game():
                 all_sprites.add(platform)
 
             spikes_coords = [
-                (580, 555),
-                (740, 555),
-                (900, 555),
+                (1000, 555),
+                (700, 670),
+                (800, 670),
+                (900, 670),
+                (1100, 670),
+                (1200, 670),
             ]
-            for i in range(0, 0):
+            for i in range(0, 6):
                 spike = Entity('Spikes', spikes_coords[i][0], spikes_coords[i][1])
                 spikes.add(spike)
                 all_sprites.add(spike)
 
             powerups_coords = [
-                (1000, 420),
                 (540, 200),
+                (1000, 420),
+                (1600, 350),
+                (1900, 300),
             ]
-            for i in range(0, 2):
+            for i in range(0, 4):
                 powerup = Entity('PowerUp', powerups_coords[i][0], powerups_coords[i][1])
                 powerups.add(powerup)
                 all_sprites.add(powerup)
 
+            wraith = Entity('Wraith', 1500, 300)
+            all_sprites.add(wraith)
+
             player.score = 0
-            player.rect.centerx = 80
+            player.rect.centerx = 1100
             player.rect.centery = 500
             SCREEN = 2
             all_sprites.add(player)
@@ -275,7 +296,7 @@ def Game():
             for playerC, powerC in powerups_collider.items():
                 powerC[0].kill()
                 playerC.score += 1
-                if playerC.score == 2:
+                if playerC.score == MAX_SCORE:
                     SCREEN = 4
 
             key = pygame.key.get_pressed()
@@ -290,6 +311,16 @@ def Game():
 
             for coin in powerups:
                 coin.calculate_sprite()
+
+            wraith.calculate_sprite()
+            if wraith.is_descending == False:
+                wraith.rect.y -= 3
+                if wraith.rect.top < 100:
+                    wraith.is_descending = True
+            else:
+                wraith.rect.y += 3
+                if wraith.rect.bottom > HEIGHT - 100:
+                    wraith.is_descending = False
                 
 
         # Game Over
