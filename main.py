@@ -5,7 +5,7 @@ from random import randint
 WIDTH = 1280
 HEIGHT= 720
 
-MAX_X = 1280   
+MAX_X = 640   
 
 SCREEN = 1
 
@@ -37,34 +37,48 @@ class Player(pygame.sprite.Sprite):
         self.current_sprite = 0
         self.old_status = 0
         self.walking_left = False
-        self.sprites_limit = [17 * player_sprite_multiplier, 11 * player_sprite_multiplier, 11 * player_sprite_multiplier, 9 * player_sprite_multiplier, 5 * player_sprite_multiplier] # We multiply by 8 to make sprite changing better, n/8 is amount of sprites used
+        self.dead = False
+        self.time = 0
+        self.sprites_limit = [17 * player_sprite_multiplier, 11 * player_sprite_multiplier, 11 * player_sprite_multiplier, 9 * player_sprite_multiplier, 5 * player_sprite_multiplier, 14 * player_sprite_multiplier] # We multiply by 8 to make sprite changing better, n/8 is amount of sprites used
 
     def calculate_sprite(self, status):
-        if self.old_status != status:
-            self.old_status = status
-            self.current_sprite = 0
+        if self.dead == False:
+            if self.old_status != status:
+                self.old_status = status
+                self.current_sprite = 0
+
+            if self.current_sprite % player_sprite_multiplier == 0:
+                if status == 0:
+                    self.image = pygame.image.load("assets/sprites/Player/Idle/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                    self.image = pygame.transform.flip(self.image, self.walking_left, False)
+                elif status == 1:
+                    self.image = pygame.image.load("assets/sprites/Player/Running/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                elif status == 2:
+                    self.image = pygame.image.load("assets/sprites/Player/Running/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                    self.image = pygame.transform.flip(self.image, self.walking_left, False)
+                elif status == 3:
+                    self.image = pygame.image.load("assets/sprites/Player/Jumping/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                    self.image = pygame.transform.flip(self.image, self.walking_left, False)
+                elif status == 4:
+                    self.image = pygame.image.load("assets/sprites/Player/FallingDown/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+                    self.image = pygame.transform.flip(self.image, self.walking_left, False)
+                
+
+            self.current_sprite += 1
+            if self.current_sprite == self.sprites_limit[status]:
+                self.current_sprite = 0
+
+    def die(self):
+        global SCREEN
 
         if self.current_sprite % player_sprite_multiplier == 0:
-            if status == 0:
-                self.image = pygame.image.load("assets/sprites/Player/Idle/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
-                self.image = pygame.transform.flip(self.image, self.walking_left, False)
-            elif status == 1:
-                self.image = pygame.image.load("assets/sprites/Player/Running/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
-            elif status == 2:
-                self.image = pygame.image.load("assets/sprites/Player/Running/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
-                self.image = pygame.transform.flip(self.image, self.walking_left, False)
-            elif status == 3:
-                self.image = pygame.image.load("assets/sprites/Player/Jumping/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
-                self.image = pygame.transform.flip(self.image, self.walking_left, False)
-            elif status == 4:
-                self.image = pygame.image.load("assets/sprites/Player/FallingDown/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
-                self.image = pygame.transform.flip(self.image, self.walking_left, False)
-            
-
-        self.current_sprite += 1
-        if self.current_sprite == self.sprites_limit[status]:
-            self.current_sprite = 0
-
+            self.image = pygame.image.load("assets/sprites/Player/Dying/" + str(int(self.current_sprite / player_sprite_multiplier)) + ".png")
+            self.image = pygame.transform.flip(self.image, self.walking_left, False)
+        
+        if self.current_sprite == self.sprites_limit[5]:
+            SCREEN = 3
+        else:
+            self.current_sprite += 1
 
     def update(self):
         global SCREEN
@@ -74,26 +88,22 @@ class Player(pygame.sprite.Sprite):
             if SCREEN == 1 or SCREEN == 3:
                 SCREEN = 0
             else:
-                if self.is_jumping == False and self.is_descending == False:
+                if self.is_jumping == False and self.is_descending == False and self.dead == False:
                     self.is_jumping = True
 
         if SCREEN == 2:
-            if keys[K_d]:
+            if keys[K_d] and self.dead == False:
                 self.rect.x += int(self.vel)
                 if self.rect.right > WIDTH:
                     self.rect.right = WIDTH
-                    if self.posX + 640 <= MAX_X:
-                        self.posX += 640
 
                 self.walking_left = False
                 self.calculate_sprite(1)
 
-            if keys[K_a]:
+            if keys[K_a] and self.dead == False:
                 self.rect.x -= int(self.vel)
                 if self.rect.left < 0:
                     self.rect.left = 0
-                    if self.posX - 640 >= 0:
-                        self.posX -= 640
 
                 self.walking_left = True
                 self.calculate_sprite(2)
@@ -269,8 +279,12 @@ def Game():
             all_sprites.add(wraith)
 
             player.score = 0
-            player.rect.centerx = 1100
+            player.rect.centerx = 80
             player.rect.centery = 500
+            player.dead = False
+            player.current_sprite = 0
+            player.time = 6000
+            player.posX = 0
             SCREEN = 2
             all_sprites.add(player)
 
@@ -319,7 +333,10 @@ def Game():
 
             spikes_collider = pygame.sprite.groupcollide(players, spikes, False, False)
             for playerC, spikeC in spikes_collider.items():
-                SCREEN = 3
+                if playerC.dead == False:
+                    playerC.current_sprite = 0
+                    playerC.dead = True
+                playerC.die()
 
             coins_collider = pygame.sprite.groupcollide(players, coins, False, False)
             for playerC, powerC in coins_collider.items():
@@ -328,10 +345,12 @@ def Game():
 
             key = pygame.key.get_pressed()
             if player.rect.right == WIDTH and player.posX < MAX_X and key[K_d]:
+                player.posX += 640
                 for element in all_sprites:
                     element.rect.x -= 640
                 bg_coords[0] -= 640
             elif player.rect.left == 0 and player.posX > 1 and key[K_a]:
+                player.posX -= 640
                 for element in all_sprites:
                     element.rect.x += 640
                 bg_coords[0] += 640
@@ -349,6 +368,7 @@ def Game():
                 if wraith.rect.bottom > HEIGHT - 100:
                     wraith.is_descending = False
                 
+            player.time -= 1
 
         # Game Over
         elif SCREEN == 3:
@@ -386,7 +406,7 @@ def Game():
         all_sprites.draw(screen)
 
 
-        intro_text = font3.render(f'Hongos: {player.score}', False, (255, 255, 255))
-        screen.blit(intro_text,(850,10))
+        intro_text = font3.render(f'Monedas: {player.score} | Tiempo restante: {int(player.time / 60)}', False, (255, 255, 255))
+        screen.blit(intro_text,(500,10))
 
 Game()
