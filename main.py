@@ -135,9 +135,13 @@ class Entity(pygame.sprite.Sprite):
 
         if type == 'Spikes':
             img = "assets/sprites/spikes.png"
+        elif type == 'Spikes2':
+            img = "assets/sprites/spikes-2.png"
         elif type == 'Platform':
             img = "assets/sprites/platform-1.png"
-        elif type == 'PowerUp':
+        elif type == 'Platform2':
+            img = "assets/sprites/platform-2.png"
+        elif type == 'Coin':
             img = "assets/sprites/Coins/0.png"
             self.sprites_limit = 9
         elif type == 'Wraith':
@@ -158,7 +162,7 @@ class Entity(pygame.sprite.Sprite):
     def calculate_sprite(self):
 
         if self.current_sprite % entity_sprite_multiplier == 0:
-            if self.type == 'PowerUp':
+            if self.type == 'Coin':
                 self.image = pygame.image.load("assets/sprites/Coins/" + str(int(self.current_sprite / entity_sprite_multiplier)) + ".png")  
             elif self.type == 'Wraith':    
                 self.image = pygame.image.load("assets/sprites/Wraith/Taunt/" + str(int(self.current_sprite / entity_sprite_multiplier)) + ".png")  
@@ -172,10 +176,10 @@ all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 spikes = pygame.sprite.Group()
 players = pygame.sprite.Group()
-powerups = pygame.sprite.Group()
+coins = pygame.sprite.Group()
 
 def Game():
-    global platforms, players, powerups, spikes, all_sprites, SCREEN, bg_coords
+    global platforms, players, coins, spikes, all_sprites, SCREEN, bg_coords
 
     pygame.display.set_caption("Platformer v0.1")
     pygame.mixer.music.load("assets/sounds/frigost-cuna-de-alma.mp3")
@@ -194,7 +198,7 @@ def Game():
         # We add all elements in this state in order to restart the game easier
         if SCREEN == 0:
             # Restart sprite groups
-            powerups = pygame.sprite.Group()
+            coins = pygame.sprite.Group()
             platforms = pygame.sprite.Group()
             spikes = pygame.sprite.Group()
             all_sprites = pygame.sprite.Group()
@@ -222,24 +226,46 @@ def Game():
                 (900, 670),
                 (1100, 670),
                 (1200, 670),
+                (1500, 670),
+                (1650, 670),
+                (1750, 670)
             ]
-            for i in range(0, 6):
-                spike = Entity('Spikes', spikes_coords[i][0], spikes_coords[i][1])
+            for i in range(0, 9):
+                sp = 'Spikes'
+                if i >= 6: 
+                    sp = 'Spikes2'
+                spike = Entity(sp, spikes_coords[i][0], spikes_coords[i][1])
                 spikes.add(spike)
                 all_sprites.add(spike)
 
-            powerups_coords = [
+            platform = Entity('Platform2', 1920, 660)
+            platforms.add(platform)
+            all_sprites.add(platform)
+
+            coins_coords = [
                 (540, 200),
                 (1000, 420),
                 (1600, 350),
                 (1900, 300),
+                (1900, 350),
+                (1900, 400),
+                (1900, 450),
+                (1900, 500),
+                (1900, 550),
+                (1850, 300),
+                (1850, 350),
+                (1850, 400),
+                (1850, 450),
+                (1850, 500),
+                (1850, 550),
             ]
-            for i in range(0, 4):
-                powerup = Entity('PowerUp', powerups_coords[i][0], powerups_coords[i][1])
-                powerups.add(powerup)
-                all_sprites.add(powerup)
+            for i in range(0, 15):
+                coin = Entity('Coin', coins_coords[i][0], coins_coords[i][1])
+                coins.add(coin)
+                all_sprites.add(coin)
 
             wraith = Entity('Wraith', 1500, 300)
+            spikes.add(wraith)
             all_sprites.add(wraith)
 
             player.score = 0
@@ -275,7 +301,10 @@ def Game():
         # The game itself
         elif SCREEN == 2:
             platforms_collider = pygame.sprite.groupcollide(players, platforms, False, False)
-            for playerC, platformC in platforms_collider.items():                
+            for playerC, platformC in platforms_collider.items():
+                # Detect if player is in final platform
+                if platformC[0].type == 'Platform2':
+                    SCREEN = 4
                 # platformC[0] is the first sprite player is colliding with
                 # If player is colliding with a platform's top surface, avoid its descending
                 if platformC[0].rect.top < playerC.rect.bottom - 20 and platformC[0].rect.top > playerC.rect.bottom - 30:
@@ -292,12 +321,10 @@ def Game():
             for playerC, spikeC in spikes_collider.items():
                 SCREEN = 3
 
-            powerups_collider = pygame.sprite.groupcollide(players, powerups, False, False)
-            for playerC, powerC in powerups_collider.items():
+            coins_collider = pygame.sprite.groupcollide(players, coins, False, False)
+            for playerC, powerC in coins_collider.items():
                 powerC[0].kill()
                 playerC.score += 1
-                if playerC.score == MAX_SCORE:
-                    SCREEN = 4
 
             key = pygame.key.get_pressed()
             if player.rect.right == WIDTH and player.posX < MAX_X and key[K_d]:
@@ -309,7 +336,7 @@ def Game():
                     element.rect.x += 640
                 bg_coords[0] += 640
 
-            for coin in powerups:
+            for coin in coins:
                 coin.calculate_sprite()
 
             wraith.calculate_sprite()
