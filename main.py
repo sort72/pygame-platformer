@@ -39,6 +39,7 @@ class Player(pygame.sprite.Sprite):
         self.walking_left = False
         self.dead = False
         self.time = 0
+        self.level = 2
         self.sprites_limit = [17 * player_sprite_multiplier, 11 * player_sprite_multiplier, 11 * player_sprite_multiplier, 9 * player_sprite_multiplier, 5 * player_sprite_multiplier, 14 * player_sprite_multiplier] # We multiply by 8 to make sprite changing better, n/8 is amount of sprites used
 
     def calculate_sprite(self, status):
@@ -187,17 +188,18 @@ platforms = pygame.sprite.Group()
 spikes = pygame.sprite.Group()
 players = pygame.sprite.Group()
 coins = pygame.sprite.Group()
+wraiths = pygame.sprite.Group()
 
 def Game():
-    global platforms, players, coins, spikes, all_sprites, SCREEN, bg_coords
+    global platforms, players, coins, spikes, wraiths, all_sprites, SCREEN, bg_coords
 
     pygame.display.set_caption("Platformer v0.1")
     pygame.mixer.music.load("assets/sounds/frigost-cuna-de-alma.mp3")
     pygame.mixer.music.play(-1)
-    bg = pygame.image.load("assets/sprites/bg-1.jpg")
     player = Player()
     players.add(player)
     all_sprites.add(player)
+    bg = pygame.image.load("assets/sprites/bg-" + str(player.level) + ".jpg")
 
     while True:
         for event in pygame.event.get():
@@ -213,104 +215,150 @@ def Game():
             spikes = pygame.sprite.Group()
             all_sprites = pygame.sprite.Group()
             bg_coords = [0, 0]
+            bg = pygame.image.load("assets/sprites/bg-" + str(player.level) + ".jpg")
 
-            platforms_coords = [
-                (350, 600),
-                (600, 500),
-                (370, 370),
-                (600, 250),
-                (1020, 200),
-                (1250, 600),
-                (1400, 500),
-                (1650, 400)
-            ]
-            for i in range(0, 8):
-                platform = Entity('Platform', platforms_coords[i][0], platforms_coords[i][1])
+            if player.level == 1:
+
+                platforms_coords = [
+                    (350, 600),
+                    (600, 500),
+                    (370, 370),
+                    (600, 250),
+                    (1020, 200),
+                    (1250, 600),
+                    (1400, 500),
+                    (1650, 400)
+                ]
+                for i in range(0, 8):
+                    platform = Entity('Platform', platforms_coords[i][0], platforms_coords[i][1])
+                    platforms.add(platform)
+                    all_sprites.add(platform)
+
+                spikes_coords = [
+                    (1000, 555),
+                    (700, 670),
+                    (800, 670),
+                    (900, 670),
+                    (1100, 670),
+                    (1200, 670),
+                    (1500, 670),
+                    (1650, 670),
+                    (1750, 670)
+                ]
+                for i in range(0, 9):
+                    sp = 'Spikes'
+                    if i >= 6: 
+                        sp = 'Spikes2'
+                    spike = Entity(sp, spikes_coords[i][0], spikes_coords[i][1])
+                    spikes.add(spike)
+                    all_sprites.add(spike)
+
+                platform = Entity('Platform2', 1920, 660)
                 platforms.add(platform)
                 all_sprites.add(platform)
 
-            spikes_coords = [
-                (1000, 555),
-                (700, 670),
-                (800, 670),
-                (900, 670),
-                (1100, 670),
-                (1200, 670),
-                (1500, 670),
-                (1650, 670),
-                (1750, 670)
-            ]
-            for i in range(0, 9):
-                sp = 'Spikes'
-                if i >= 6: 
-                    sp = 'Spikes2'
-                spike = Entity(sp, spikes_coords[i][0], spikes_coords[i][1])
-                spikes.add(spike)
-                all_sprites.add(spike)
+                coins_coords = [
+                    (540, 200),
+                    (1000, 420),
+                    (1600, 350),
+                    (1900, 300),
+                    (1900, 350),
+                    (1900, 400),
+                    (1900, 450),
+                    (1900, 500),
+                    (1900, 550),
+                    (1850, 300),
+                    (1850, 350),
+                    (1850, 400),
+                    (1850, 450),
+                    (1850, 500),
+                    (1850, 550),
+                ]
+                for i in range(0, 15):
+                    coin = Entity('Coin', coins_coords[i][0], coins_coords[i][1])
+                    coins.add(coin)
+                    all_sprites.add(coin)
 
-            platform = Entity('Platform2', 1920, 660)
-            platforms.add(platform)
-            all_sprites.add(platform)
+                wraith = Entity('Wraith', 1500, 300)
+                wraiths.add(wraith)
+                spikes.add(wraith)
+                all_sprites.add(wraith)
+                player.time = 1800
+            else:
+                platforms_coords = [
+                    (400, 580),
+                    (700, 580),
+                    (900, 500),
+                    (1100, 400),
+                    (780, 300),
+                    (1050, 180),
+                    (1400, 200),
+                ]
+                for i in range(0, 7):
+                    platform = Entity('Platform', platforms_coords[i][0], platforms_coords[i][1])
+                    platforms.add(platform)
+                    all_sprites.add(platform)
 
-            coins_coords = [
-                (540, 200),
-                (1000, 420),
-                (1600, 350),
-                (1900, 300),
-                (1900, 350),
-                (1900, 400),
-                (1900, 450),
-                (1900, 500),
-                (1900, 550),
-                (1850, 300),
-                (1850, 350),
-                (1850, 400),
-                (1850, 450),
-                (1850, 500),
-                (1850, 550),
-            ]
-            for i in range(0, 15):
-                coin = Entity('Coin', coins_coords[i][0], coins_coords[i][1])
-                coins.add(coin)
-                all_sprites.add(coin)
+                spikes_coords = [
+                    (600, 670),
+                    (700, 670),
+                    (800, 670),
+                    (900, 670),
+                    (1100, 670),
+                    (1200, 670),
+                    (1500, 670),
+                    (1900, 670),
+                    (1600, 670)
+                ]
+                for i in range(0, 9):
+                    spike = Entity('Spikes2', spikes_coords[i][0], spikes_coords[i][1])
+                    spikes.add(spike)
+                    all_sprites.add(spike)
 
-            wraith = Entity('Wraith', 1500, 300)
-            spikes.add(wraith)
-            all_sprites.add(wraith)
+                platform = Entity('Platform2', 1750, 660)
+                platforms.add(platform)
+                all_sprites.add(platform)
+
+                coins_coords = [
+                    (700, 250),
+                    (1030, 350),
+                    (1200, 130),
+                    (1680, 400)
+                ]
+                for i in range(0, 4):
+                    coin = Entity('Coin', coins_coords[i][0], coins_coords[i][1])
+                    coins.add(coin)
+                    all_sprites.add(coin)
+
+                wraiths_coords = [
+                    (500, 200),
+                    (1200, 400),
+                    (1300, 600),
+                ]
+
+                for i in range(0, 3):
+                    wraith = Entity('Wraith', wraiths_coords[i][0], wraiths_coords[i][1])
+                    spikes.add(wraith)
+                    wraiths.add(wraith)
+                    all_sprites.add(wraith)
+
+                player.time = 3600
+                
 
             player.score = 0
             player.rect.centerx = 80
             player.rect.centery = 500
             player.dead = False
             player.current_sprite = 0
-            player.time = 6000
             player.posX = 0
             SCREEN = 2
             all_sprites.add(player)
 
         # Main menu
         elif SCREEN == 1:
-            intro = pygame.font.SysFont('Comic Sans MS', 60)
-            font2 = pygame.font.SysFont('Courier', 25)
+            bg = pygame.image.load("assets/sprites/bg-start.jpg")
             font3 = pygame.font.SysFont('Courier', 18)
-            screen.blit(bg, (0,0))
-            intro_text = intro.render('Platformer v0.1', False, (220, 178, 234))
-            screen.blit(intro_text,(283,100))
-            intro_text = font2.render('Utiliza las teclas izquierda y derecha para moverte', False, (255, 255, 255))
-            screen.blit(intro_text,(100,250))
-            intro_text = font2.render('y la barra ESPACIADORA para saltar.', False, (255, 255, 255))
-            screen.blit(intro_text,(100,280))
-            intro_text = font2.render('___________________________________________________', False, (255, 255, 255))
-            screen.blit(intro_text,(100,310))
-            intro_text = font2.render('Debes recoger todos los hongos para ganar.', False, (255, 255, 255))
-            screen.blit(intro_text,(100,350))
-            intro_text = font2.render('¡Ten cuidado con los pinchos!', False, (255, 255, 255))
-            screen.blit(intro_text,(100,380))
-            intro_text = font2.render('Presiona ESPACIO para jugar.', False, (255, 255, 255))
-            screen.blit(intro_text,(290,500))
-
-            intro_text = font3.render('Desarrollado por Sergio Alejandro Ortega y Jeferson David Meneses.', False, (255, 255, 255))
-            screen.blit(intro_text,(5,605))
+            screen.blit(bg, (-300,0))
 
         # The game itself
         elif SCREEN == 2:
@@ -318,7 +366,11 @@ def Game():
             for playerC, platformC in platforms_collider.items():
                 # Detect if player is in final platform
                 if platformC[0].type == 'Platform2':
-                    SCREEN = 4
+                    if player.level == 1:
+                        player.level = 2
+                        SCREEN = 0
+                    else:
+                        SCREEN = 5
                 # platformC[0] is the first sprite player is colliding with
                 # If player is colliding with a platform's top surface, avoid its descending
                 if platformC[0].rect.top < playerC.rect.bottom - 20 and platformC[0].rect.top > playerC.rect.bottom - 30:
@@ -358,52 +410,55 @@ def Game():
             for coin in coins:
                 coin.calculate_sprite()
 
-            wraith.calculate_sprite()
-            if wraith.is_descending == False:
-                wraith.rect.y -= 3
-                if wraith.rect.top < 100:
-                    wraith.is_descending = True
-            else:
-                wraith.rect.y += 3
-                if wraith.rect.bottom > HEIGHT - 100:
-                    wraith.is_descending = False
+            for wraith in wraiths:
+                wraith.calculate_sprite()
+                if wraith.is_descending == False:
+                    wraith.rect.y -= 3
+                    if wraith.rect.top < 100:
+                        wraith.is_descending = True
+                else:
+                    wraith.rect.y += 3
+                    if wraith.rect.bottom > HEIGHT - 100:
+                        wraith.is_descending = False
                 
             player.time -= 1
+            if player.time < 0:
+                SCREEN = 4
 
         # Game Over
         elif SCREEN == 3:
-            intro = pygame.font.SysFont('Comic Sans MS', 60)
-            font2 = pygame.font.SysFont('Courier', 25)
-            font3 = pygame.font.SysFont('Courier', 18)
-            screen.blit(bg, (0,0))
-            intro_text = intro.render('GAME OVER', False, (220, 178, 234))
-            screen.blit(intro_text,(322,100))
-            intro_text = font2.render(f'Recolectaste {player.score} hongos', False, (255, 255, 255))
-            screen.blit(intro_text,(335,250))
-            intro_text = font2.render('Presiona ESPACIO para reintentar.', False, (255, 255, 255))
-            screen.blit(intro_text,(250,500))
+            font2 = pygame.font.SysFont('IMPACT', 50)
+            bg = pygame.image.load("assets/sprites/bg-gameover.jpg")
+            screen.blit(bg, (-300,0))
+            intro_text = font2.render(f'{player.score}', False, (255, 255, 255))
+            screen.blit(intro_text,(650,320))
 
-            intro_text = font3.render('Desarrollado por Sergio Alejandro Ortega y Jeferson David Meneses.', False, (255, 255, 255))
-            screen.blit(intro_text,(5,605))
+        # Time Out
+        elif SCREEN == 4:
+            font2 = pygame.font.SysFont('IMPACT', 50)
+            bg = pygame.image.load("assets/sprites/bg-timeout.jpg")
+            screen.blit(bg, (-300,0))
+            intro_text = font2.render(f'{player.score}', False, (255, 255, 255))
+            screen.blit(intro_text,(650,320))
 
         # End game
-        elif SCREEN == 4:
-            intro = pygame.font.SysFont('Comic Sans MS', 60)
-            font2 = pygame.font.SysFont('Courier', 25)
-            font3 = pygame.font.SysFont('Courier', 18)
-            screen.blit(bg, (0,0))
-            intro_text = intro.render('¡GANASTE!', False, (220, 178, 234))
-            screen.blit(intro_text,(340,100))
-            intro_text = font2.render(f'¡Recolectaste todos los hongos!', False, (255, 255, 255))
-            screen.blit(intro_text,(265,250))
-            intro_text = font2.render('Gracias por jugar.', False, (255, 255, 255))
-            screen.blit(intro_text,(367,400))
+        elif SCREEN == 5:
+            font2 = pygame.font.SysFont('IMPACT', 25)
+            bg = pygame.image.load("assets/sprites/bg-won.jpg")
+            screen.blit(bg, (-300,0))
+            intro_text = font2.render(f'{player.score}', False, (255, 255, 255))
+            screen.blit(intro_text,(335,250))
+            intro_text = font2.render(f'{player.time}', False, (255, 255, 255))
+            screen.blit(intro_text,(250,500))
 
         pygame.display.flip()
         click.tick(120)
         all_sprites.update()
+        
         screen.blit(bg, (bg_coords[0], bg_coords[1]))
+
         all_sprites.draw(screen)
+        
 
 
         intro_text = font3.render(f'Monedas: {player.score} | Tiempo restante: {int(player.time / 60)}', False, (255, 255, 255))
