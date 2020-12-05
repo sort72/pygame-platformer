@@ -463,7 +463,7 @@ def Game():
         
 
 
-        intro_text = font3.render(f'Monedas: {player.score} | Tiempo restante: {int(player.time / 60)}', False, (255, 255, 255))
-        screen.blit(intro_text,(500,10))
+        intro_text = font3.render(f'Nivel: {player.level} | Monedas: {player.score} | Tiempo restante: {int(player.time / 60)}', False, (255, 255, 255))
+        screen.blit(intro_text,(400,10))
 
 Game()
