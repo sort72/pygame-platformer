@@ -9,7 +9,6 @@ MAX_X = 640
 
 SCREEN = 1
 
-MAX_SCORE = 4
 LIMIT_JUMPED = 150.0
 
 bg_coords = [0, 0]
@@ -33,13 +32,14 @@ class Player(pygame.sprite.Sprite):
         self.distance_jumped = 0.0
         self.time_descending = 0.0
         self.score = 0
+        self.score_1 = 0
         self.posX = 0
         self.current_sprite = 0
         self.old_status = 0
         self.walking_left = False
         self.dead = False
         self.time = 0
-        self.level = 2
+        self.level = 1
         self.sprites_limit = [17 * player_sprite_multiplier, 11 * player_sprite_multiplier, 11 * player_sprite_multiplier, 9 * player_sprite_multiplier, 5 * player_sprite_multiplier, 14 * player_sprite_multiplier] # We multiply by 8 to make sprite changing better, n/8 is amount of sprites used
 
     def calculate_sprite(self, status):
@@ -324,8 +324,9 @@ def Game():
                     (1030, 350),
                     (1200, 130),
                     (1680, 400)
+                    (1680, 450)
                 ]
-                for i in range(0, 4):
+                for i in range(0, 5):
                     coin = Entity('Coin', coins_coords[i][0], coins_coords[i][1])
                     coins.add(coin)
                     all_sprites.add(coin)
@@ -345,7 +346,7 @@ def Game():
                 player.time = 3600
                 
 
-            player.score = 0
+            player.score = player.score_1
             player.rect.centerx = 80
             player.rect.centery = 500
             player.dead = False
@@ -368,6 +369,7 @@ def Game():
                 if platformC[0].type == 'Platform2':
                     if player.level == 1:
                         player.level = 2
+                        player.score_1 = player.score
                         SCREEN = 0
                     else:
                         SCREEN = 5
@@ -443,13 +445,13 @@ def Game():
 
         # End game
         elif SCREEN == 5:
-            font2 = pygame.font.SysFont('IMPACT', 25)
+            font2 = pygame.font.SysFont('IMPACT', 50)
             bg = pygame.image.load("assets/sprites/bg-won.jpg")
             screen.blit(bg, (-300,0))
             intro_text = font2.render(f'{player.score}', False, (255, 255, 255))
-            screen.blit(intro_text,(335,250))
-            intro_text = font2.render(f'{player.time}', False, (255, 255, 255))
-            screen.blit(intro_text,(250,500))
+            screen.blit(intro_text,(650,300))
+            intro_text = font2.render(f'{int(player.time/60)}', False, (255, 255, 255))
+            screen.blit(intro_text,(640,450))
 
         pygame.display.flip()
         click.tick(120)
