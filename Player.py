@@ -65,7 +65,7 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
 
         if keys[K_SPACE]:
-            if data.SCREEN == 1 or data.SCREEN == 3:
+            if data.SCREEN == 1 or data.SCREEN == 3 or data.SCREEN == 4:
                 data.SCREEN = 0
             else:
                 if self.is_jumping == False and self.is_descending == False and self.dead == False:
